@@ -5,6 +5,16 @@ import { ErrorRequestHandler, Request, Response } from 'express';
 import { GetENV, envEnums } from '../util/env';
 import { LOG, LEVEL } from '../util/logger';
 
+interface ErrorResponse {
+	status: 'error';
+	message: string;
+	production?: boolean;
+	errorCode?: string;
+	data?: any;
+	details?: any;
+	err?: any;
+}
+
 // AppError class
 class AppError extends Error {
 	public statusCode: number;
@@ -31,31 +41,47 @@ function mongooseValidationError(err: any, _req: Request, res: Response) {
 		return e.message;
 	});
 
-	return res.status(400).json({
+	const errorResponse: ErrorResponse = {
 		status: 'error',
 		message: errors.length > 1 ? errors : errors[0],
 		err: GetENV(envEnums.NODE_ENV) === envEnums.DEVELOPMENT ? err : undefined,
-	});
+	};
+
+	return res.status(400).json(errorResponse);
 }
 
+// mongoose duplicate key error
+function mongooseDuplicateKeyError(err: any, _req: Request, res: Response) {
+	const errorResponse: ErrorResponse = {
+		status: 'error',
+		message: 'The request contains duplicate values for unique fields.',
+		data: err.keyValue,
+		err: GetENV(envEnums.NODE_ENV) === envEnums.DEVELOPMENT ? err : undefined,
+	};
+
+	return res.status(400).json(errorResponse);
+}
 // devlopment mode error handling
 function devErrorHandler(err: any, _req: Request, res: Response) {
 	LOG(err.toString(), { reqId: res.locals.reqId, level: LEVEL.ERROR });
-	return res.status(err.statusCode || 500).json({
-		devlopment: true,
+	const error: ErrorResponse = {
 		status: 'error',
+		production: false,
 		message: err,
-	});
+	};
+	return res.status(err.statusCode || 500).json(error);
 }
 
 // production mode error handling
 function prodErrorHandler(err: any, _req: Request, res: Response) {
 	LOG(err, { reqId: res.locals.reqId, level: LEVEL.ERROR });
-	return res.status(err.statusCode || 500).json({
-		production: true,
+	const error: ErrorResponse = {
 		status: 'error',
+		production: true,
 		message: 'Something went wrong!',
-	});
+	};
+
+	return res.status(err.statusCode || 500).json(error);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -79,15 +105,21 @@ const globalErrorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
 	// entity.parse.failed
 	if (err.type === 'entity.parse.failed') {
-		return res.status(400).json({
+		const error: ErrorResponse = {
 			status: 'error',
 			message: 'Invalid JSON data',
-		});
+		};
+		return res.status(400).json(error);
 	}
 
 	// mongoose validation error
 	if (err.name === 'ValidationError') {
 		return mongooseValidationError(err, _req, res);
+	}
+
+	// mongoose duplicate key error
+	if (err.code === 11000) {
+		return mongooseDuplicateKeyError(err, _req, res);
 	}
 
 	// default error handling
@@ -97,11 +129,24 @@ const globalErrorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 		case envEnums.PRODUCTION:
 			return prodErrorHandler(err, _req, res);
 		default:
-			return res.status(err.statusCode || 500).json({
+			// eslint-disable-next-line no-case-declarations
+			const error: ErrorResponse = {
 				status: 'error',
 				message: 'Something went wrong!',
-			});
+			};
+			return res.status(err.statusCode || 500).json(error);
 	}
 };
+
+// any process exception or unhandled rejection
+process.on('uncaughtException', (err) => {
+	LOG(err, { level: LEVEL.ERROR });
+	process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+	LOG(err as any, { level: LEVEL.ERROR });
+	process.exit(1);
+});
 
 export { globalErrorHandler, AppError };

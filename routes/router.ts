@@ -1,15 +1,8 @@
-import { Request, Response, Router } from 'express';
-import { userLogin } from '../util/auth';
+import { Router } from 'express';
+import authRoute from './auth';
 
 const routes = Router();
 
-routes.get('/', (_req: Request, res: Response) => {
-	res.json({
-		note: 'Welcome to the API V1 Routes',
-		info: 'The Following /*/*/*/* URL paths are dymatically generated',
-	});
-});
-
-routes.post('/login', userLogin);
+routes.use('/auth', authRoute);
 
 export default routes;

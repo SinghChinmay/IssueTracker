@@ -61,7 +61,13 @@ function printRoutes(app: Express) {
 
 	function checkStack(stack: any, routeURL = ''): void {
 		let counter = 0;
-		const parentRoute = routeURL + getParentRoute(stack.regexp.toString());
+		let parentRoute = `${routeURL + getParentRoute(stack.regexp.toString())}`;
+
+		// if parentRoute don't end with /, add it
+		if (!parentRoute.endsWith('/')) {
+			parentRoute += '/';
+		}
+
 		LOG(addColors(parentRoute), { reqId: 'ROUTES-PARENT' });
 
 		const routes = stack.handle.stack;
@@ -75,8 +81,12 @@ function printRoutes(app: Express) {
 
 				const method = route.route.stack[0].method.toUpperCase();
 				const { path } = route.route;
-				productionRoutes.push({ method, path: `${serverAddress()}/${parentRoute}${path}` });
-				LOG(addColors(`${method} - ${parentRoute}${path}`), { reqId: `ROUTE-${counter}` });
+				const URL = `${parentRoute}${path}`.replaceAll('//', '/');
+				productionRoutes.push({
+					method,
+					path: `${serverAddress()}/${URL}`,
+				});
+				LOG(addColors(`${method} - ${URL}`), { reqId: `ROUTE-${counter}` });
 				continue;
 			}
 

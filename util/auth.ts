@@ -2,7 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User from '../auto/user';
+import User from '../DB/user';
 import { GetENV } from './env';
 import { compareHash, hash } from './hashing';
 
