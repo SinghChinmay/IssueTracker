@@ -1,0 +1,7 @@
+{
+	"watchExtensions": ["ts", "env"],
+	"execMap": {
+		"ts": "ts-node"
+	},
+	"ignore": ["postman"]
+}
