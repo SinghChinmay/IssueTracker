@@ -106,13 +106,6 @@ const profileSchema = new mongoose.Schema(
 			required: true,
 		},
 		// internal fields
-		role: {
-			type: String,
-			default: 'user',
-			required: true,
-			enum: ['user', 'admin'],
-			select: false,
-		},
 		status: {
 			type: String,
 			default: 'active',
