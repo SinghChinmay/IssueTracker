@@ -21,17 +21,17 @@ const profileSchema = new mongoose.Schema(
 		},
 		profileType: {
 			type: String,
-			required: true,
 			enum: [
 				'Developer',
 				'Junior Developer',
 				'Senior Developer',
 				'Manager',
-				'Student or Learning',
-				'Instructor or Teacher',
+				'Student',
+				'Instructor',
 				'Intern',
-				'Other',
+				'NA',
 			],
+			default: 'NA',
 		},
 		skills: {
 			type: [String],

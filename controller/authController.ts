@@ -1,6 +1,8 @@
 /* eslint-disable consistent-return */
+import crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import Profile from '../DB/profile';
 import User from '../DB/user';
 import { GetENV } from '../util/env';
 import { compareHash } from '../util/hashing';
@@ -14,14 +16,56 @@ const createJWT = (id: string) => {
 	return token;
 };
 
+const generateUniqueUsername = async (username: string) => {
+	let uniqueUsername = username;
+
+	// eslint-disable-next-line no-constant-condition
+	while (true) {
+		// eslint-disable-next-line no-await-in-loop
+		const userExists = await Profile.findOne({ username: uniqueUsername });
+
+		if (!userExists) {
+			break;
+		} else {
+			// Append a random string to the username
+			const randomString = crypto.randomBytes(4).toString('hex');
+			uniqueUsername = `${username}_${randomString}`;
+		}
+	}
+
+	return uniqueUsername;
+};
+
+// Main registration function to handle user registration
 const register = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { name, email, password } = req.body;
 
+		// Generate a unique username based on the provided username or user's name
+		const uniqueUsername = await generateUniqueUsername(req.body.username || name.replace(/\s/g, '').toLowerCase());
+
+		// Create a new User instance with the provided data
 		const userData = new User({ name, email, password });
+
+		// Save the user to the database
 		const user = await userData.save();
-		res.status(201).json({ user });
+
+		try {
+			// Create a new Profile instance for the user with the unique username
+			const profile = new Profile({ user: user.id, username: uniqueUsername });
+
+			// Save the profile to the database
+			await profile.save();
+
+			// Return the created user and profile in the response
+			res.status(201).json({ user, profile });
+		} catch (profileError) {
+			// If profile creation fails, delete the user and pass the error to the next middleware
+			await User.findByIdAndDelete(user.id);
+			next(profileError);
+		}
 	} catch (error) {
+		// If any other error occurs, pass it to the next middleware
 		next(error);
 	}
 };
