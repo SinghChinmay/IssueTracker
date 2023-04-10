@@ -2,8 +2,8 @@
 import crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import Profile from '../DB/profile';
-import User from '../DB/user';
+import Profile from '../models/profile';
+import User from '../models/user';
 import { GetENV } from '../util/env';
 import { compareHash } from '../util/hashing';
 import { AuthenticatedResponse } from '../util/reponseInterfaces';
