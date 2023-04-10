@@ -34,7 +34,7 @@
 		"@typescript-eslint/no-shadow": ["error"],
 		"@typescript-eslint/no-unused-vars": "warn",
 		"import/prefer-default-export": "off",
-		"quotes": [2, "single", { "avoidEscape": true }],
+		"quotes": [1, "single", { "avoidEscape": true }],
 		"import/order": [
 			"error",
 			{
