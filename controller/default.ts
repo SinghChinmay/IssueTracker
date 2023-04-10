@@ -170,7 +170,13 @@ export const updateOne = catchAsync(
 export const deleteOne = catchAsync(
 	async (Model: MongoDBType, req: Request, res: AuthenticatedResponse, _next: NextFunction) => {
 		await checkIdIsValid(res.locals.identifier || req.params.id, Model);
-		await Model.default.findByIdAndDelete(res.locals.identifier || req.params.id);
+
+		if (res.locals.identifier) {
+			await Model.default.findOneAndDelete(res.locals.identifier);
+		} else {
+			await Model.default.findByIdAndDelete(req.params.id);
+		}
+
 		// 204 means no content
 		res.sendStatus(204);
 	},

@@ -21,4 +21,8 @@ const getAllProfiles = async (req: Request, res: AuthenticatedResponse, next: Ne
 	factory.getAll(Model, req, res, next);
 };
 
-export { getMyProfile, updateMyProfile, getAllProfiles };
+const getProfileById = async (req: Request, res: AuthenticatedResponse, next: NextFunction) => {
+	factory.getOne(Model, req, res, next);
+};
+
+export { getMyProfile, updateMyProfile, getAllProfiles, getProfileById };
