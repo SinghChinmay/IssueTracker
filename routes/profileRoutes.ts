@@ -8,14 +8,16 @@ const profileRouter = Router();
 profileRouter.use(authenticate(['user', 'admin']));
 
 profileRouter.get('/me', profileController.getMyProfile);
-
 profileRouter.patch('/me', profileController.updateMyProfile);
+profileRouter.patch('/add', profileController.addToArray);
+profileRouter.patch('/remove', profileController.removeFromArray);
 
 // admin routes below
 profileRouter.use(authenticate(['admin']));
-// get profile by id
-profileRouter.get('/:id', profileController.getProfileById);
+
 // get all profiles
 profileRouter.get('/all', profileController.getAllProfiles);
+// get profile by id
+profileRouter.get('/:id', profileController.getProfileById);
 
 export default profileRouter;

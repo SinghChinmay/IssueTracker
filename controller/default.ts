@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // deault mongoose function pass model name as collection name with req res next
@@ -8,7 +9,7 @@ import { Redis } from '../databases/redisClient';
 import { AppError } from '../error/globalErrorHandler';
 import catchAsync from '../util/catchAsync';
 import { isRedisAvailable } from '../util/env';
-import { LOG } from '../util/logger';
+import { LEVEL, LOG } from '../util/logger';
 import { AuthenticatedResponse, IdentifierForDB } from '../util/reponseInterfaces';
 
 // default mongoDB type
@@ -179,5 +180,129 @@ export const deleteOne = catchAsync(
 
 		// 204 means no content
 		res.sendStatus(204);
+	},
+);
+
+function checkObjKeyExists(obj: any, key: string, type: 'boolean' | 'string' | 'number' | 'object' | 'array') {
+	let keyExists = true;
+
+	switch (type) {
+		case 'boolean':
+			if (typeof obj[key] !== 'boolean') {
+				keyExists = false;
+			}
+			break;
+		case 'string':
+			if (typeof obj[key] !== 'string') {
+				keyExists = false;
+			}
+			break;
+		case 'number':
+			if (typeof obj[key] !== 'number') {
+				keyExists = false;
+			}
+			break;
+		case 'object':
+			if (typeof obj[key] !== 'object') {
+				keyExists = false;
+			}
+			break;
+		case 'array':
+			if (!Array.isArray(obj[key])) {
+				keyExists = false;
+			}
+			break;
+		default:
+			break;
+	}
+
+	if (!keyExists) {
+		LOG(`Key ${key} does not exist in the object`, { level: LEVEL.WARN });
+		throw new AppError('Internal server error', 500);
+	}
+}
+
+export const toggleBoolean = catchAsync(
+	async (Model: MongoDBType, req: Request, res: AuthenticatedResponse, _next: NextFunction, objKey: string) => {
+		const doc: any = await checkIdIsValid(res.locals.identifier || req.params.id, Model);
+
+		checkObjKeyExists(doc, objKey, 'boolean');
+
+		doc[objKey] = !doc[objKey];
+		await doc.save();
+
+		res.status(200).json({
+			status: 'success',
+			data: doc,
+		});
+	},
+);
+
+export const addToArray = catchAsync(
+	async (
+		Model: MongoDBType,
+		req: Request,
+		res: AuthenticatedResponse,
+		_next: NextFunction,
+		field: string,
+		value: any,
+	) => {
+		const identifier = res.locals.identifier || req.params.id;
+		const doc: any = await checkIdIsValid(identifier, Model);
+
+		checkObjKeyExists(doc, field, 'array');
+
+		const updatedDoc = await Model.default.findOneAndUpdate(
+			{ _id: doc.id },
+			{ $push: { [field]: value } },
+			{ new: true, runValidators: true },
+		);
+
+		res.status(200).json({
+			status: 'success',
+			data: updatedDoc,
+		});
+	},
+);
+
+export const removeFromArray = catchAsync(
+	async (
+		Model: MongoDBType,
+		req: Request,
+		res: AuthenticatedResponse,
+		_next: NextFunction,
+		field: string,
+		value: any,
+	) => {
+		const identifier = res.locals.identifier || req.params.id;
+		const doc: any = await checkIdIsValid(identifier, Model);
+
+		checkObjKeyExists(doc, field, 'array');
+
+		const updatedDoc = await Model.default.findOneAndUpdate(
+			{ _id: doc.id },
+			{ $pull: { [field]: value } },
+			{ new: true, runValidators: true },
+		);
+
+		res.status(200).json({
+			status: 'success',
+			data: updatedDoc,
+		});
+	},
+);
+
+export const findAllWithFilterAndPagination = catchAsync(
+	async (Model: MongoDBType, req: Request, res: AuthenticatedResponse, _next: NextFunction, filter: object) => {
+		const page = Number(req.query.page) || 1;
+		const limit = Number(req.query.limit) || 10;
+		const skip = (page - 1) * limit;
+
+		const doc = await Model.default.find(filter).skip(skip).limit(limit);
+
+		res.status(200).json({
+			status: 'success',
+			data: doc,
+		});
 	},
 );

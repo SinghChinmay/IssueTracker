@@ -25,4 +25,18 @@ const getProfileById = async (req: Request, res: AuthenticatedResponse, next: Ne
 	factory.getOne(Model, req, res, next);
 };
 
-export { getMyProfile, updateMyProfile, getAllProfiles, getProfileById };
+// Add a new item to the array field
+const addToArray = async (req: Request, res: AuthenticatedResponse, next: NextFunction) => {
+	res.locals.identifier = { user: res.locals.user.id };
+	const { arrayField, item } = req.body;
+	factory.addToArray(Model, req, res, next, arrayField, item);
+};
+
+// Remove an item from the array field
+const removeFromArray = async (req: Request, res: AuthenticatedResponse, next: NextFunction) => {
+	res.locals.identifier = { user: res.locals.user.id };
+	const { arrayField, item } = req.body;
+	factory.removeFromArray(Model, req, res, next, arrayField, item);
+};
+
+export { getMyProfile, updateMyProfile, getAllProfiles, getProfileById, addToArray, removeFromArray };
