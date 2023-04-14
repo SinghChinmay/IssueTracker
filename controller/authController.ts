@@ -82,7 +82,7 @@ const login = async (req: Request, res: Response) => {
 	// check if user exists
 	const doc = await User.findOne({ email }, { passwordHash: 1 });
 	if (!doc) {
-		return res.status(404).json({
+		return res.status(400).json({
 			error: 'Not Found',
 			message: 'User not found',
 		});

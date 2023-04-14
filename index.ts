@@ -15,6 +15,7 @@
  */
 // Import the required packages
 import chalk from 'chalk';
+import cookieParser from 'cookie-parser';
 import express, { Response } from 'express';
 import morgan from 'morgan';
 import { DefaultAPIRoute } from './constants/router.constants';
@@ -51,9 +52,32 @@ import './util/extensions';
 
 	const app = express();
 
+	// parse cookies using express middleware
+	app.use(cookieParser());
+
 	// ⭐🔴 Express middleware
 	app.use(express.json({ limit: '10kb' }));
 	app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+	app.use((req, res, next) => {
+		const allowedOrigins = /.localhost.|.127.0.0.1./;
+		const { origin } = req.headers;
+		if (origin && allowedOrigins.test(origin)) {
+			res.setHeader('Access-Control-Allow-Origin', origin);
+		}
+		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+		res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+		res.setHeader('Access-Control-Allow-Credentials', 'true'); // Add this line
+
+		// Set headers for preflight requests
+		if (req.method === 'OPTIONS') {
+			res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+			res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+			res.status(204).end();
+		} else {
+			next();
+		}
+	});
 
 	// requestId is a unique identifier for each request
 	app.use((req, res, next) => {
