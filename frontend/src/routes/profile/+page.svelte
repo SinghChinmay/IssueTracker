@@ -19,6 +19,11 @@
 	onMount(async () => {
 		await loginCheck();
 	});
+
+	// convert 2021-01-01T00:00:00.000Z to 2021-01-01
+	function formatDate(date: string) {
+		return date.split('T')[0];
+	}
 </script>
 
 {#if profile}
@@ -69,23 +74,19 @@
 				<!-- Right Column -->
 				<div class="right-column">
 					<!-- Skills Section -->
-					<div class="section skills">
+					<div class="card skills">
 						<h4 class="section-title">Skills</h4>
-						<ul>
-							{#each profile.skills as skill}
-								<li>{skill}</li>
-							{/each}
-						</ul>
+						<p>{profile.skills.join(', ')}</p>
 					</div>
 					<!-- Experience Section -->
 					<div class="section experience">
 						<h4 class="section-title">Experience</h4>
 						{#each profile.experience as item}
-							<div class="card mb-3">
+							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">{item.title} at {item.company}</h5>
 									<h6 class="card-subtitle mb-2 text-muted">
-										{item.from} - {item.to ? item.to : 'Current'}
+										{formatDate(item.from)} - {item.to ? formatDate(item.from) : 'Current'}
 									</h6>
 									<p class="card-text">{item.description}</p>
 								</div>
@@ -96,13 +97,13 @@
 					<div class="section education">
 						<h4 class="section-title">Education</h4>
 						{#each profile.education as item}
-							<div class="card mb-3">
+							<div class="card">
 								<div class="card-body">
 									<h5 class="card-title">
 										{item.degree} in {item.fieldofstudy} from {item.school}
 									</h5>
 									<h6 class="card-subtitle mb-2 text-muted">
-										{item.from} - {item.to ? item.to : 'Current'}
+										{formatDate(item.from)} - {item.to ? formatDate(item.from) : 'Current'}
 									</h6>
 									<p class="card-text">{item.description}</p>
 								</div>
@@ -118,7 +119,11 @@
 {/if}
 
 <style>
-	/* Profile.css */
+	.skills {
+		margin-bottom: 1rem;
+		border-radius: 1rem;
+		padding-left: 1.5rem;
+	}
 	.profile-container {
 		display: flex;
 		flex-direction: column;
@@ -139,9 +144,6 @@
 	.left-column,
 	.right-column {
 		flex-basis: 45%;
-	}
-
-	.left-column {
 		margin-top: 2rem;
 	}
 
