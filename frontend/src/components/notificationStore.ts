@@ -6,10 +6,8 @@ const notificationStore = writable({
 	duration: 3000
 });
 
-export function notify(message: any, type = 'success', duration = 3000) {
-	notificationStore.set({ message, type, duration });
+export function notify(message: any, type = 'success', duration: number | undefined = undefined) {
+	notificationStore.set({ message, type, duration: duration || message.split(' ').length * 1000 });
 }
-
-$: console.log('notificationStore', notificationStore);
 
 export default notificationStore;
