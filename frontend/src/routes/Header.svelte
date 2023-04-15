@@ -12,6 +12,7 @@
 				{#if $isUserLoggedIn}
 					<a href="/dashboard">Dashboard</a>
 					<a href="/projects">Projects</a>
+					<a href="/profile">Profile</a>
 					<a href="/logout">Logout</a>
 				{:else}
 					<a href="/login">Login</a>
