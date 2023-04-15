@@ -35,9 +35,16 @@ class AppError extends Error {
 // mongoose validation error
 function mongooseValidationError(err: any, _req: Request, res: Response) {
 	const errors = Object.values(err.errors).map((e: any) => {
+		const path = e.path.replace(/\.\d\./g, '.').trim();
+
 		if (e.name === 'CastError') {
-			return `${e.path} is invalid, ${e.value} is not a valid ${e.kind}`;
+			return `${path} is invalid, ${e.value} is not a valid ${e.kind}`;
 		}
+
+		if (e.name === 'ValidatorError') {
+			return `${e.message} in ${path}`;
+		}
+
 		return e.message;
 	});
 
