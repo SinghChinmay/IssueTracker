@@ -13,16 +13,13 @@
 		event.preventDefault();
 
 		try {
-			const response = await axios.post(
-				'http://localhost:3000/api/v1/auth/login',
-				{
-					email,
-					password
-				},
-				{
-					withCredentials: true // This enables sending cookies with the request
-				}
-			);
+			const response = await axios.post('http://localhost:3000/api/v1/auth/login', {
+				email,
+				password
+			});
+
+			// set incoming jwt cookie from token
+			document.cookie = `jwt=${response.data.token}`;
 
 			notify(response.data.message, 'success');
 

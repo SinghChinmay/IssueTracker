@@ -3,25 +3,10 @@
 	import './styles.css';
 	import Notification from '../components/Notification.svelte';
 	import { onMount } from 'svelte';
-	import { isUserLoggedIn, user } from '$lib/stores';
-	import { goto } from '$app/navigation';
+	import { loginCheck } from '$lib/loginCheck';
 
 	onMount(async () => {
-		const response = await fetch('http://localhost:3000/api/v1/profile/me', {
-			method: 'GET',
-			credentials: 'include' // This is important for sending cookies
-		});
-
-		if (response.status === 200) {
-			$isUserLoggedIn = true;
-			$user = await response.json();
-			goto('/profile');
-		} else {
-			$isUserLoggedIn = false;
-			// also delete the jwt cookie
-			document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-			goto('/');
-		}
+		await loginCheck();
 	});
 </script>
 
@@ -36,7 +21,7 @@
 	<footer>
 		<div class="footer-container">
 			<div class="footer-logo">
-				<h3>Issue Tracker</h3>
+				<a href="/"><h3>Issue Tracker</h3></a>
 			</div>
 			<div class="footer-links">
 				<a href="/about">About</a>

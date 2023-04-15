@@ -6,7 +6,7 @@
 	<nav class="navbar">
 		<div class="container">
 			<div class="nav-logo">
-				<h2>Issue Tracker</h2>
+				<a href="/"><h2>Issue Tracker</h2></a>
 			</div>
 			<div class="nav-links">
 				{#if $isUserLoggedIn}
@@ -14,8 +14,6 @@
 					<a href="/projects">Projects</a>
 					<a href="/profile">Profile</a>
 					<a href="/logout">Logout</a>
-				{:else}
-					<a href="/login">Login</a>
 				{/if}
 			</div>
 		</div>
