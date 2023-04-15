@@ -15,8 +15,11 @@
 		if (response.status === 200) {
 			$isUserLoggedIn = true;
 			$user = await response.json();
+			goto('/profile');
 		} else {
 			$isUserLoggedIn = false;
+			// also delete the jwt cookie
+			document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			goto('/');
 		}
 	});
