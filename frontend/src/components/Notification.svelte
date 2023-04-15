@@ -75,12 +75,6 @@
 	>
 		{message}
 	</div>
-{:else}
-	<style>
-		.notification {
-			display: none;
-		}
-	</style>
 {/if}
 
 <style>

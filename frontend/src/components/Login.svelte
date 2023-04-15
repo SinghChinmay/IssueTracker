@@ -1,5 +1,7 @@
 <script>
 	import axios from 'axios';
+	import { notify } from './notificationStore';
+	import { goto } from '$app/navigation';
 
 	let email = '';
 	let password = '';
@@ -22,11 +24,17 @@
 				}
 			);
 
-			console.log(response.data);
+			notify(response.data.message, 'success');
+
+			setTimeout(() => {
+				goto('/profile');
+			}, 1000);
 		} catch (error) {
 			// check error is instance of axios error and if so, log the response data
 			if (error instanceof axios.AxiosError) {
 				console.error('Error logging in:', error.response?.data);
+
+				notify(error.response?.data.message, 'error');
 			}
 		}
 	}
