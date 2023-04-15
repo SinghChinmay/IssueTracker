@@ -55,7 +55,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 			const profile = new Profile({ user: user.id, username: uniqueUsername });
 
 			// Save the profile to the database
-			await profile.save();
+			await profile.save({ validateBeforeSave: false });
 
 			// Return the created user and profile in the response
 			res.status(201).json({ user, profile });
@@ -99,15 +99,8 @@ const login = async (req: Request, res: Response) => {
 	// create token
 	const token = createJWT(doc.id);
 
-	res.header('Authorization', `Bearer ${token}`);
-
-	res.cookie('jwt', token, {
-		expires: new Date(Date.now() + parseInt(GetENV('JWT_COOKIE_EXPIRES_IN'), 10) * 24 * 60 * 60 * 1000),
-		httpOnly: true,
-		secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
-	});
-
 	return res.status(200).json({
+		token,
 		status: 'success',
 		message: 'Login successful',
 	});
