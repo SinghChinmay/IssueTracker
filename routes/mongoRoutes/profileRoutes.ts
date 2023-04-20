@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { authenticate } from '../controller/authController';
-import * as profileController from '../controller/profileController';
+import { authenticate } from '../../controller/mongo/authController';
+import * as profileController from '../../controller/profileController';
 
 const profileRouter = Router();
 

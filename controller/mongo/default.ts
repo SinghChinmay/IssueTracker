@@ -5,12 +5,12 @@
 
 import { NextFunction, Request } from 'express';
 import mongoose, { FilterQuery } from 'mongoose';
-import { Redis } from '../databases/redisClient';
-import { AppError } from '../error/globalErrorHandler';
-import catchAsync from '../util/catchAsync';
-import { isRedisAvailable } from '../util/env';
-import { LEVEL, LOG } from '../util/logger';
-import { AuthenticatedResponse, IdentifierForDB } from '../util/reponseInterfaces';
+import { Redis } from '../../databases/redisClient';
+import { AppError } from '../../error/globalErrorHandler';
+import catchAsync from '../../util/catchAsync';
+import { isRedisAvailable } from '../../util/env';
+import { LEVEL, LOG } from '../../util/logger';
+import { AuthenticatedResponse, IdentifierForDB } from '../../util/reponseInterfaces';
 
 // default mongoDB type
 export interface MongoDBType {

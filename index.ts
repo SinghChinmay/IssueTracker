@@ -18,8 +18,10 @@ import chalk from 'chalk';
 import cookieParser from 'cookie-parser';
 import express, { Response } from 'express';
 import morgan from 'morgan';
-import { DefaultAPIRoute } from './constants/router.constants';
+import { DataSource } from 'typeorm';
+import { MongoAPIRoute } from './constants/router.constants';
 import { mongoConnect } from './databases/mongoConnect';
+import { postgresConnect } from './databases/postgresTypeorm';
 import { redisClient } from './databases/redisClient';
 import { globalErrorHandler } from './error/globalErrorHandler';
 import { GetENV, isRedisAvailable } from './util/env';
@@ -27,6 +29,9 @@ import { NextRequestId } from './util/generator.helper';
 import { LEVEL, LOG } from './util/logger';
 import printRoutes from './util/printAllRoutes';
 import './util/extensions';
+
+// eslint-disable-next-line import/no-mutable-exports
+export let datasource: DataSource;
 
 // MongoDB connection
 // wait till the connection is established to mongoDB
@@ -36,8 +41,13 @@ import './util/extensions';
 	it can be either 'LOCAL' or 'TEST' or 'PROD' or 'DEV', etc depending on the environment
 	if you are using a different environment, then you need to add a case for that environment 
 	in the switch statement ("util\mongoConnect.ts) */
-	await mongoConnect(GetENV('MONGO_DB_CONFIG'));
+	if (GetENV('MONGO_ENABLED') === 'true') {
+		await mongoConnect(GetENV('MONGO_DB_CONFIG'));
+	}
 
+	if (GetENV('POSTGRES_ENABLED') === 'true') {
+		datasource = await postgresConnect(GetENV('POSTGRES_DB_CONFIG'));
+	}
 	// redis connection
 	if (isRedisAvailable()) {
 		await redisClient();
@@ -47,8 +57,6 @@ import './util/extensions';
 			level: LEVEL.WARN,
 		});
 	}
-
-	const routes = await import('./routes/router');
 
 	const app = express();
 
@@ -104,8 +112,17 @@ import './util/extensions';
 		);
 	}
 
-	// router Import
-	app.use(DefaultAPIRoute, routes.default);
+	if (GetENV('MONGO_ENABLED') === 'true') {
+		// router Import
+		const MongoRoutes = await import('./routes/mongoRoutes/mongoRouter');
+		app.use(MongoAPIRoute, MongoRoutes.default);
+	}
+
+	if (GetENV('POSTGRES_ENABLED') === 'true') {
+		// router Import
+		const PostgresRoutes = await import('./routes/postgresRoutes/pgRouter');
+		app.use('/api/v1/postgres', PostgresRoutes.default);
+	}
 
 	// Sending to pages not found
 	app.all('*', (req, res) => {

@@ -2,11 +2,11 @@
 import crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import Profile from '../models/profile';
-import User from '../models/user';
-import { GetENV } from '../util/env';
-import { compareHash } from '../util/hashing';
-import { AuthenticatedResponse } from '../util/reponseInterfaces';
+import Profile from '../../models/profile';
+import User from '../../models/user';
+import { GetENV } from '../../util/env';
+import { compareHash } from '../../util/hashing';
+import { AuthenticatedResponse } from '../../util/reponseInterfaces';
 
 const createJWT = (id: string) => {
 	const payload = {

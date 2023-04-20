@@ -1,6 +1,6 @@
 import { Request, NextFunction } from 'express';
-import Profile from '../models/profile';
-import { AuthenticatedResponse } from '../util/reponseInterfaces';
+import Profile from '../../models/profile';
+import { AuthenticatedResponse } from '../../util/reponseInterfaces';
 import * as factory from './default';
 
 const Model = {
