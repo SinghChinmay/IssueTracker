@@ -44,7 +44,7 @@ export const deleteUserById = async (id: string): Promise<void> => {
 };
 
 // save data to dictory table
-export const createDict = async (userId: string, query: string, dataFromAPI: any): Promise<Dict> => {
+export const createDict = async (userId: string, query: string, dataFromAPI: any): Promise<Dict | null> => {
 	try {
 		const userRepository = datasource.getRepository(User);
 		const dictRepository = datasource.getRepository(Dict);
@@ -67,6 +67,16 @@ export const createDict = async (userId: string, query: string, dataFromAPI: any
 			throw new Error('Word not found in the API data');
 		}
 
+		// Check if the word already exists in the database
+		const wordExist = await wordRepository.findOne({
+			where: { word: wordData.word },
+			relations: ['meanings', 'phonetics'],
+		});
+
+		if (wordExist) {
+			return null;
+		}
+
 		const word = new Word();
 		word.word = wordData.word;
 
@@ -74,11 +84,11 @@ export const createDict = async (userId: string, query: string, dataFromAPI: any
 
 		const phonetics = wordData.phonetics.map((phoneticData: any) => {
 			const phonetic = new Phonetic();
-			phonetic.text = phoneticData.text;
-			phonetic.audio = phoneticData.audio;
-			phonetic.sourceUrl = phoneticData.sourceUrl;
-			phonetic.licenseName = phoneticData.license.name;
-			phonetic.licenseUrl = phoneticData.license.url;
+			phonetic.text = phoneticData.text || '';
+			phonetic.audio = phoneticData.audio || '';
+			phonetic.sourceUrl = phoneticData.sourceUrl || '';
+			phonetic.licenseName = phoneticData.license.name || '';
+			phonetic.licenseUrl = phoneticData.license.url || '';
 			phonetic.word = word;
 
 			return phonetic;
@@ -93,10 +103,10 @@ export const createDict = async (userId: string, query: string, dataFromAPI: any
 
 			const definitions = meaningData.definitions.map((definitionData: any) => {
 				const definition = new Definition();
-				definition.definition = definitionData.definition;
-				definition.synonyms = definitionData.synonyms;
-				definition.antonyms = definitionData.antonyms;
-				definition.example = definitionData.example;
+				definition.definition = definitionData.definition || '';
+				definition.synonyms = definitionData.synonyms || '';
+				definition.antonyms = definitionData.antonyms || '';
+				definition.example = definitionData.example || '';
 				definition.meaning = meaning;
 
 				return definition;

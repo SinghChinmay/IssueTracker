@@ -33,7 +33,7 @@ userRouter.get('/search', async (req, res) => {
 
 		return res.status(200).json(queryResponse.data);
 	} catch (error) {
-		return res.status(500).json({ message: 'Error fetching user', error });
+		return res.status(500).json({ message: 'Error fetching data', error });
 	}
 });
 
