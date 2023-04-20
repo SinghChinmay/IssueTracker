@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Dict } from './Dict';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -8,7 +7,4 @@ export class User {
 
 	@Column({ type: 'varchar', length: 255, nullable: false })
 	firstName: string;
-
-	@OneToMany(() => Dict, (dict) => dict.userId)
-	words: Dict[];
 }

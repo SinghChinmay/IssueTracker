@@ -1,10 +1,9 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-useless-catch */
-import { Definition } from '../../entity/Definition';
+import { EntityManager } from 'typeorm';
 import { Dict } from '../../entity/Dict';
-import { Meaning } from '../../entity/Meaning';
-import { Phonetic } from '../../entity/Phonetic';
 import { User } from '../../entity/User';
-import { Word } from '../../entity/Word';
 
 import { datasource } from '../../index';
 
@@ -46,98 +45,32 @@ export const deleteUserById = async (id: string): Promise<void> => {
 // save data to dictory table
 export const createDict = async (userId: string, query: string, dataFromAPI: any): Promise<Dict | null> => {
 	try {
-		const userRepository = datasource.getRepository(User);
-		const dictRepository = datasource.getRepository(Dict);
-		const wordRepository = datasource.getRepository(Word);
-		const phoneticRepository = datasource.getRepository(Phonetic);
-		const meaningRepository = datasource.getRepository(Meaning);
-		const definitionRepository = datasource.getRepository(Definition);
+		const result = await datasource.transaction(async (transactionalEntityManager: EntityManager) => {
+			const dictRepository = transactionalEntityManager.getRepository(Dict);
 
-		const user = await userRepository.findOne({
-			where: { id: userId },
+			const newDict = new Dict();
+			newDict.userId = userId;
+			newDict.word = dataFromAPI[0].word;
+			newDict.data = JSON.stringify(dataFromAPI);
+
+			await dictRepository.save(newDict);
+
+			return newDict;
 		});
 
-		if (!user) {
-			throw new Error('User not found');
-		}
-
-		const wordData = dataFromAPI.find((word: any) => word.word === query);
-
-		if (!wordData) {
-			throw new Error('Word not found in the API data');
-		}
-
-		// Check if the word already exists in the database
-		const wordExist = await wordRepository.findOne({
-			where: { word: wordData.word },
-			relations: ['meanings', 'phonetics'],
-		});
-
-		if (wordExist) {
-			return null;
-		}
-
-		const word = new Word();
-		word.word = wordData.word;
-
-		await wordRepository.save(word);
-
-		const phonetics = wordData.phonetics.map((phoneticData: any) => {
-			const phonetic = new Phonetic();
-			phonetic.text = phoneticData.text || '';
-			phonetic.audio = phoneticData.audio || '';
-			phonetic.sourceUrl = phoneticData.sourceUrl || '';
-			phonetic.licenseName = phoneticData.license.name || '';
-			phonetic.licenseUrl = phoneticData.license.url || '';
-			phonetic.word = word;
-
-			return phonetic;
-		});
-
-		await phoneticRepository.save(phonetics);
-
-		const meanings = wordData.meanings.map((meaningData: any) => {
-			const meaning = new Meaning();
-			meaning.partOfSpeech = meaningData.partOfSpeech;
-			meaning.word = word;
-
-			const definitions = meaningData.definitions.map((definitionData: any) => {
-				const definition = new Definition();
-				definition.definition = definitionData.definition || '';
-				definition.synonyms = definitionData.synonyms || '';
-				definition.antonyms = definitionData.antonyms || '';
-				definition.example = definitionData.example || '';
-				definition.meaning = meaning;
-
-				return definition;
-			});
-
-			definitionRepository.save(definitions);
-
-			return meaning;
-		});
-
-		word.meanings = meanings; // Save the meanings to the word.meanings property
-		await wordRepository.save(word); // Save the word entity with the updated meanings property
-		await meaningRepository.save(meanings); // Save the meanings
-
-		const newDict = new Dict();
-		newDict.userId = user;
-		newDict.word = word;
-
-		await dictRepository.save(newDict);
-
-		return newDict;
+		return result;
 	} catch (error) {
 		throw error;
 	}
 };
-
 // get all data from dictory table
-export const getDictAll = async (): Promise<Dict[]> => {
+
+export const getDictAll = async (): Promise<any[]> => {
 	const dictRepository = datasource.getRepository(Dict);
 
-	return dictRepository.find({
-		relations: ['userId', 'word', 'word.phonetics', 'word.meanings', 'word.meanings.definitions'],
-	});
+	const dicts = await dictRepository.query(`
+  SELECT * FROM dict
+`);
+
+	return dicts;
 };

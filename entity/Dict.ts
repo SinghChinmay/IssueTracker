@@ -1,16 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToOne, JoinColumn } from 'typeorm';
-import { User } from './User'; // Assuming you have a User entity
-import { Word } from './Word';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('dict')
 export class Dict {
 	@PrimaryGeneratedColumn()
 	id: string;
 
-	@ManyToOne(() => User, (user) => user.id)
-	userId: User;
+	@Column()
+	userId: string;
 
-	@OneToOne(() => Word)
-	@JoinColumn()
-	word: Word;
+	@Column()
+	word: string;
+
+	@Column({ nullable: true })
+	data: string;
 }
